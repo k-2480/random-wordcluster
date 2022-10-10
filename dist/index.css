@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=BIZ+UDGothic&family=BIZ+UDMincho&family=DotGothic16&family=Kaisei+Decol&family=New+Tegomin&family=Noto+Sans+JP&family=Noto+Serif+JP&family=Stick&family=Yuji+Syuku&display=swap');
 
 * {
     padding: 0;
@@ -13,11 +13,106 @@ html, body {
 
 body {
     padding: 1rem;
+    background-color: #333;
+    color: #EEE;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+main {
+    min-width: auto;
+    max-width: 1500px;
+}
+
+h1 {
+    font-size: 1rem;
+}
+
+h2 {
+    font-size: 1rem;
+    text-align: center;
 }
 
 canvas {
+    width: 100%;
     margin-top: 1rem;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+#input-textarea {
+    width: 100%;
+    border-radius: 5px;
+}
+
+button {
+    padding: 0.5em;
+    background-color: #EEE;
+    color: #333;
+    border: none;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #AAA;
+    cursor: pointer;
+}
+button:active {
+    background-color: #888;
+}
+
+option[value="BIZ UDPMincho"] {
+    font-family: 'BIZ UDPMincho', serif;
+}
+option[value="Noto Serif JP"] {
+    font-family: 'Noto Serif JP', serif;
+}
+option[value="BIZ UDGothic"] {
+    font-family: 'BIZ UDGothic', sans-serif;
+}
+option[value="DotGothic16"] {
+    font-family: 'DotGothic16', sans-serif;
+}
+option[value="Kaisei Decol"] {
+    font-family: 'Kaisei Decol', serif;
+}
+option[value="New Tegomin"] {
+    font-family: 'New Tegomin', serif;
+}
+option[value="Noto Sans JP"] {
+    font-family: 'Noto Sans JP', sans-serif;
+}
+option[value="Stick"] {
+    font-family: 'Stick', sans-serif;
+}
+option[value="Yuji Syuku"] {
+    font-family: 'Yuji Syuku', serif;
+}
+
+div.controller-box {
+    border-radius: 5px;
+    max-width: 1500px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: start;
+}
+div.controller-box > div {
+    display: flex;
+    flex-basis: calc(100% / 2);
+    margin-top: 0.5em;
+}
+div.controller-box > div > label {
+    padding-right: 1em;
+    flex-basis: 20em;
+}
+
+#snapshot {
+    margin-top: 2em;
+    border-top: 1px solid #AAA;
+    padding-top: 1em;
+}
+
+#snapshot img {
+    width: 100%;
 }
 
 /* Smartphone iPhone 6+ etc */
@@ -31,5 +126,20 @@ canvas {
     }
     textarea {
         max-width: calc(100vw - 1rem);
+    }
+    div.controller-box {
+        border-radius: 5px;
+        max-width: 100vw;
+        display: flex;
+        flex-direction: column;
+    }
+    div.controller-box > div {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.5em;
+    }
+    div.controller-box > div > label {
+        padding-right: 1em;
+        flex-basis: auto;
     }
 }

@@ -1,3 +1,21 @@
+class Rectangle {
+    constructor(public x: number, public y: number, public w: number, public h: number) { }
+
+    isCollided(rect: Rectangle): boolean {
+        if (this.x > rect.x + rect.w
+            || this.x + this.w < rect.x
+            || this.y > rect.y + rect.h
+            || this.y + this.h < rect.y) {
+            return false;
+        }
+        return true;
+    }
+
+    toString() {
+        return `${this.x}:${this.y}:${this.w}:${this.h}`;
+    }
+}
+
 const inputTextarea: HTMLTextAreaElement = <HTMLTextAreaElement>(
     document.querySelector("#input-textarea")
 );
@@ -22,8 +40,11 @@ let snapshotButton: HTMLButtonElement = <HTMLButtonElement>(
 let snapshotArea: HTMLDivElement = <HTMLDivElement>(
     document.querySelector("#snapshot")
 );
+let textFontSelect: HTMLSelectElement = <HTMLSelectElement>(
+    document.querySelector("#text-font")
+);
 
-const inputElements: { [key: string]: HTMLInputElement } = {
+const inputElements: { [key: string]: HTMLInputElement | HTMLSelectElement } = {
     minFontSize: <HTMLInputElement>document.querySelector("#min-font-size"),
     maxFontSize: <HTMLInputElement>document.querySelector("#max-font-size"),
     canvasWidth: <HTMLInputElement>document.querySelector("#canvas-width"),
@@ -32,33 +53,35 @@ const inputElements: { [key: string]: HTMLInputElement } = {
         document.querySelector("#background-color")
     ),
     fontColor: <HTMLInputElement>document.querySelector("#font-color"),
+    bigFontNum: <HTMLInputElement>document.querySelector("#big-font-num"),
 };
-const titleFontSize: number = 20;
+const titleFontSize: number = 25;
+const firstFontSize: number = 50;
 const wordLimit: number = 100;
 
-let plots: { [key: string]: number }[] = [];
+// let plots: { [key: string]: number }[] = [];
+let plots: Rectangle[] = [];
 
 inputTextarea.addEventListener("change", () => {
     initialize();
-    drawText(outputCanvas, createWords(inputTextarea), inputTitle.value);
 });
 inputTitle.addEventListener("change", () => {
     initialize();
-    drawText(outputCanvas, createWords(inputTextarea), inputTitle.value);
 });
 reloadButton.addEventListener("click", () => {
     initialize();
-    drawText(outputCanvas, createWords(inputTextarea), inputTitle.value);
+});
+textFontSelect.addEventListener("change", (e: Event) => {
+    initialize();
+    textFontSelect.setAttribute("style", `font-family: '${textFontSelect.value}'`);
 });
 snapshotButton.addEventListener("click", snapshot);
 for (let key in inputElements) {
-    inputElements[key].addEventListener("change", () => {
+    inputElements[key].addEventListener("change", (e) => {
         initialize();
-        drawText(outputCanvas, createWords(inputTextarea), inputTitle.value);
     });
 }
 initialize();
-drawText(outputCanvas, createWords(inputTextarea), inputTitle.value);
 
 function snapshot() {
     outputCanvas.toBlob((result) => {
@@ -80,12 +103,14 @@ function initialize() {
 
     outputCanvas.width = parseInt(inputElements.canvasWidth.value);
     outputCanvas.height = parseInt(inputElements.canvasHeight.value);
+
+    drawText(outputCanvas, createWords(inputTextarea), inputTitle.value);
 }
 
 function createWords(textarea: HTMLTextAreaElement): string[] {
     if (!textarea || !textarea.value) return [];
     let words = convertTextToWords(textarea.value);
-    return words.slice(-1 * wordLimit).sort((a, b) => b.length - a.length);
+    return words.slice(-1 * wordLimit).sort(() => Math.random() - 0.5);
 }
 
 function convertTextToWords(text: string) {
@@ -115,6 +140,11 @@ function drawText(canvas: HTMLCanvasElement, words: string[], title: string) {
     let backgroundColor: { [key: string]: number } = getColorInput(
         inputElements.backgroundColor.value
     );
+    const minFontSize: number = +inputElements.minFontSize.value;
+    const maxFontSize: number = +inputElements.maxFontSize.value;
+    const bigFontNum: number = +inputElements.bigFontNum.value;
+    let unitSize: number = (maxFontSize - minFontSize) / words.length;
+    let currentFontSize: number = maxFontSize;
 
     console.log(words);
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -122,11 +152,17 @@ function drawText(canvas: HTMLCanvasElement, words: string[], title: string) {
     context.fillRect(0, 0, canvas.width, canvas.height);
     plots = [];
 
+    let index = 0;
     words.forEach((word) => {
-        randomTextPlot(context, word, canvas.width, canvas.height);
+        randomTextPlot(context, word, canvas.width, canvas.height, (index < bigFontNum ? firstFontSize : currentFontSize));
+        index++;
+        currentFontSize -= unitSize;
     });
 
-    context.font = titleFontSize + "px 'Noto Serif JP'";
+    console.log(plots);
+
+    context.font = `${titleFontSize}px '${textFontSelect.value}'`;
+    console.log(context.font);
     context.fillStyle = rgba(backgroundColor, 0.75);
     context.fillRect(
         0,
@@ -144,65 +180,59 @@ function randomTextPlot(
     context: CanvasRenderingContext2D,
     text: string,
     maxWidth: number,
-    maxHeight: number
+    maxHeight: number,
+    fontSize: number
 ) {
-    let maxFontSize: number = +inputElements.maxFontSize.value;
-    let minFontSize: number = +inputElements.minFontSize.value;
-    const hugeMaxFontSize: number = 50;
-    const hugeMinFontSize: number = 40;
-
-    if (Math.random() < 0.03) {
-        maxFontSize = hugeMaxFontSize;
-        minFontSize = hugeMinFontSize;
-    }
-
-    let fontSizeSeed: number = Math.random();
-    let fontSize: number = Math.floor(
-        fontSizeSeed * (maxFontSize - minFontSize) + minFontSize
-    );
-
-    let textWidth: number = fontSize * text.length;
-    let a: number = fontSize / hugeMaxFontSize;
-    let plotY: number = Math.floor(Math.random() * maxHeight);
+    let tryFontSize: number = fontSize;
+    let textWidth: number = tryFontSize * text.length;
+    let a: number = tryFontSize / (+inputElements.maxFontSize.value + 10);
     let plotX: number = Math.floor(Math.random() * (maxWidth - textWidth));
+    let plotY: number = Math.floor(Math.random() * maxHeight);
+    let wordRect = new Rectangle(plotX, plotY, textWidth, tryFontSize);
+
     let loopFlg: boolean = false;
     if (plots.length > 0) loopFlg = true;
 
     let cnt: number = 0;
     while (loopFlg) {
         loopFlg = false;
-        plotY = Math.floor(Math.random() * maxHeight);
-        plotX = Math.floor(Math.random() * (maxWidth - textWidth));
+        a = tryFontSize / (+inputElements.maxFontSize.value + 10);
+
+        wordRect.w = tryFontSize * text.length;
+        wordRect.h = tryFontSize;
+        wordRect.x = Math.floor(Math.random() * (maxWidth - wordRect.w));
+        wordRect.y = Math.floor(Math.random() * (maxHeight - wordRect.h));
+
         plots.forEach((v) => {
-            if (
-                Math.abs(plotX - v.x) < (textWidth + v.w) / 2 &&
-                Math.abs(plotY - v.y) < (fontSize + v.h) / 2
-            ) {
+            if (wordRect.isCollided(v)) {
                 loopFlg = true;
                 return;
             }
         });
-        if (cnt++ > 1000) break;
+
+        if (cnt++ > 100) {
+            console.log('RESET ' + tryFontSize);
+            cnt = 0;
+            tryFontSize--;
+        }
+
+        if (tryFontSize <= 5) {
+            console.log('諦めました。');
+            break;
+        }
     }
-    console.log(`${cnt} loop`);
 
     context.lineWidth = 0.5;
     context.fillStyle = rgba(getColorInput(inputElements.fontColor.value), a);
-    context.font = fontSize + "px 'Noto Serif JP'";
+    context.font = `${tryFontSize}px '${textFontSelect.value}'`;
 
-    context.fillText(text, plotX, plotY);
-    console.log(text);
+    context.fillText(text, wordRect.x, wordRect.y + wordRect.h, tryFontSize * wordRect.w);
 
-    plots.push({
-        x: plotX,
-        y: plotY,
-        w: textWidth,
-        h: fontSize,
-    });
+    plots.push(wordRect);
 }
 
 function rgba(rgb: { [key: string]: number }, a: number): string {
-    return `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`;
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
 }
 
 function getColorInput(color: string): { [key: string]: number } {
@@ -215,16 +245,19 @@ function getColorInput(color: string): { [key: string]: number } {
 
 function now() {
     let date = new Date();
-    return `${zeroPadding(date.getFullYear().toString(), 4)}-${zeroPadding(
+    return `${zeroPadding(date.getFullYear().toString(), 4)} -${zeroPadding(
         (date.getMonth() - 1).toString(),
         2
-    )}-${zeroPadding(date.getDate().toString(), 2)} ${zeroPadding(
-        date.getHours().toString(),
-        2
-    )}:${zeroPadding(date.getMinutes().toString(), 2)}:${zeroPadding(
-        date.getSeconds().toString(),
-        2
-    )}`;
+    )
+        } -${zeroPadding(date.getDate().toString(), 2)} ${zeroPadding(
+            date.getHours().toString(),
+            2
+        )
+        }:${zeroPadding(date.getMinutes().toString(), 2)}:${zeroPadding(
+            date.getSeconds().toString(),
+            2
+        )
+        } `;
 }
 
 function zeroPadding(str: string, digit: number) {
