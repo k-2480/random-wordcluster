@@ -28,6 +28,8 @@ let maxFontSizeVal = (document.querySelector("#max-font-size-val"));
 let snapshotButton = (document.querySelector("#snapshot-button"));
 let snapshotArea = (document.querySelector("#snapshot"));
 let textFontSelect = (document.querySelector("#text-font"));
+let textAlphaFlg = (document.querySelector("#text-alpha-flg"));
+let dialogueFlg = (document.querySelector("#dialogue-flg"));
 const inputElements = {
     minFontSize: document.querySelector("#min-font-size"),
     maxFontSize: document.querySelector("#max-font-size"),
@@ -55,6 +57,8 @@ textFontSelect.addEventListener("change", (e) => {
     initialize();
     textFontSelect.setAttribute("style", `font-family: '${textFontSelect.value}'`);
 });
+textAlphaFlg.addEventListener("change", initialize);
+dialogueFlg.addEventListener("change", initialize);
 snapshotButton.addEventListener("click", snapshot);
 for (let key in inputElements) {
     inputElements[key].addEventListener("change", (e) => {
@@ -62,6 +66,7 @@ for (let key in inputElements) {
     });
 }
 initialize();
+console.log(inputElements.alphaSwitch);
 function snapshot() {
     outputCanvas.toBlob((result) => {
         let imageURL = URL.createObjectURL(result);
@@ -92,7 +97,9 @@ function convertTextToWords(text) {
     let textLines = text.split(/\n|。/g);
     let speechLines = new Set(textLines
         .filter((s) => {
-        return s.slice(0, 1) === "「" || s.slice(-1) === "」";
+        let targetFlg = s.slice(0, 1) === "「" || s.slice(-1) === "」";
+        targetFlg = targetFlg || !dialogueFlg.checked;
+        return targetFlg;
     })
         .map((s) => {
         return s.replace(/「|」/g, "");
@@ -164,6 +171,9 @@ function randomTextPlot(context, text, maxWidth, maxHeight, fontSize) {
         }
     }
     context.lineWidth = 0.5;
+    if (!textAlphaFlg.checked) {
+        a = 1.0;
+    }
     context.fillStyle = rgba(getColorInput(inputElements.fontColor.value), a);
     context.font = `${tryFontSize}px '${textFontSelect.value}'`;
     context.fillText(text, wordRect.x, wordRect.y + wordRect.h, tryFontSize * wordRect.w);

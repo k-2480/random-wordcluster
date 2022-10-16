@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="index.css" />
   </head>
   <body>
-    <h1>セリフ敷詰め画像生成器</h1>
+    <h1>テキスト敷詰め画像生成器</h1>
     <main>
-      <p>「」で囲まれた台詞のみを抜き出して画像にします。</p>
+      <p>入力したテキストから文章を敷き詰めた画像を生成します。</p>
       <canvas width="1500" height="500" id="output-canvas"></canvas>
       <textarea name="" id="input-textarea" cols="180" rows="10">
 走れメロス
@@ -118,6 +118,27 @@
             name="input-title"
             id="input-title"
             value="太宰治『走れメロス』"
+          />
+        </div>
+      </div>
+      <div id="controller" class="controller-box">
+        <div class="no-column vertical-align-middle">
+          <label for="text-alpha-flg">文字透過ON</label>
+          <input
+            type="checkbox"
+            name="text-alpha-flg"
+            id="text-alpha-flg"
+            value="true"
+          />
+        </div>
+        <div class="no-column vertical-align-middle">
+          <label for="dialogue-flg">セリフのみ抜き出し</label>
+          <input
+            type="checkbox"
+            name="dialogue-flg"
+            id="dialogue-flg"
+            value="true"
+            checked
           />
         </div>
       </div>

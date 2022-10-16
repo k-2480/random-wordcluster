@@ -43,6 +43,12 @@ let snapshotArea: HTMLDivElement = <HTMLDivElement>(
 let textFontSelect: HTMLSelectElement = <HTMLSelectElement>(
     document.querySelector("#text-font")
 );
+let textAlphaFlg: HTMLInputElement = <HTMLInputElement>(
+    document.querySelector("#text-alpha-flg")
+);
+let dialogueFlg: HTMLInputElement = <HTMLInputElement>(
+    document.querySelector("#dialogue-flg")
+);
 
 const inputElements: { [key: string]: HTMLInputElement | HTMLSelectElement } = {
     minFontSize: <HTMLInputElement>document.querySelector("#min-font-size"),
@@ -75,6 +81,8 @@ textFontSelect.addEventListener("change", (e: Event) => {
     initialize();
     textFontSelect.setAttribute("style", `font-family: '${textFontSelect.value}'`);
 });
+textAlphaFlg.addEventListener("change", initialize);
+dialogueFlg.addEventListener("change", initialize);
 snapshotButton.addEventListener("click", snapshot);
 for (let key in inputElements) {
     inputElements[key].addEventListener("change", (e) => {
@@ -82,6 +90,8 @@ for (let key in inputElements) {
     });
 }
 initialize();
+
+console.log(inputElements.alphaSwitch);
 
 function snapshot() {
     outputCanvas.toBlob((result) => {
@@ -118,7 +128,9 @@ function convertTextToWords(text: string) {
     let speechLines = new Set(
         textLines
             .filter((s) => {
-                return s.slice(0, 1) === "「" || s.slice(-1) === "」";
+                let targetFlg: boolean = s.slice(0, 1) === "「" || s.slice(-1) === "」";
+                targetFlg = targetFlg || !dialogueFlg.checked;
+                return targetFlg;
             })
             .map((s) => {
                 return s.replace(/「|」/g, "");
@@ -223,6 +235,10 @@ function randomTextPlot(
     }
 
     context.lineWidth = 0.5;
+
+    if (!textAlphaFlg.checked) {
+        a = 1.0;
+    }
     context.fillStyle = rgba(getColorInput(inputElements.fontColor.value), a);
     context.font = `${tryFontSize}px '${textFontSelect.value}'`;
 
